@@ -33,3 +33,5 @@ def authenticate(token=None, debug=False):
       data = json.loads(response.read().decode())
       [host, port] = data['public_url'][6:].split(':')
       print(f'SSH command: ssh -R 50000:localhost:50000 -R 50001:localhost:50001 -p{port} root@{host}')
+
+    return endpoint

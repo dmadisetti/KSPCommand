@@ -14,7 +14,7 @@ REQS = [
 ]
 
 setup(
-    name='carsmoney',
+    name='KSPCommand',
     version='0.0.1',
     packages=[
         'KSPCommand'

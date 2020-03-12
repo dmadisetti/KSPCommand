@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="'https://raw.githubusercontent.com/dmadisetti/KSPCommand/master/assets/api.min.js"></script>
+    <script>
+      selectedBody = 'pol';
+      selectedStyle = 'sat';
+
+      remove_prev = () => {};
+      window.planet = undefined;
+      function initialize() {
+        remove_prev();
+        if (!planet) {
+          let options = { atmosphere: true, center: [0, 0], zoom: 0 };
+          planet = new WE.map('planet', options);
+        }
+        // If this is a problem let me know :)
+        // This project is mainly for my personal use, and obviously this is
+        // problematic if things pick up traction.
+        var layer = WE.tileLayer(
+          'https://cors-anywhere.herokuapp.com/https://d3kmnwgldcmvsd.cloudfront.net/tiles/{body}/{style}/{z}/{x}/{y}.png',
+          {
+            maxZoom: 7,
+            maxNativeZoom: 7,
+            minNativeZoom: 0,
+            tms: true,
+            worldCopyJump: true,
+            noWrap: true,
+            attribution:
+              'Map data: crowdsourced | Imagery: 2011-2019 Take-Two Interactive, Inc.',
+            pack: window.selectedPack,
+            body: window.selectedBody,
+            style: window.selectedStyle,
+            tileSize: 128,
+          },
+        ).addTo(planet);
+        remove_prev = () => layer.removeFrom(planet);
+      }
+    </script>
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      #planet {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-image: radial-gradient(
+          farthest-corner at 40px 40px,
+          #666 0%,
+          #333 100%
+        );
+        position: absolute !important;
+      }
+      #options {
+        position: absolute !important;
+      }
+    </style>
+    <title>WebGL Earth API: Satellite</title>
+  </head>
+  <body onload="initialize()">
+    <div id="planet"></div>
+    <div id="options" onload="register()">
+      <select id="select-map-body" name="select-map-body" class="form-control">
+        <option value="moho">Moho</option>
+        <option value="eve">Eve</option>
+        <option value="gilly">Gilly</option>
+        <option value="kerbin">Kerbin</option>
+        <option value="mun">Mun</option>
+        <option value="minmus">Minmus</option>
+        <option value="duna">Duna</option>
+        <option value="ike">Ike</option>
+        <option value="dres">Dres</option>
+        <option value="jool" disabled="">Jool</option>
+        <option value="laythe">Laythe</option>
+        <option value="vall">Vall</option>
+        <option value="tylo">Tylo</option>
+        <option value="bop">Bop</option>
+        <option value="pol">Pol</option>
+        <option value="eeloo">Eeloo</option>
+      </select>
+      <select
+        id="select-map-style"
+        name="select-map-style"
+        class="form-control"
+      >
+        <option value="biome">Biome</option>
+        <option value="sat">Satellite</option>
+        <option value="slope">Slope</option>
+      </select>
+    </div>
+  </body>
+  <script>
+    document.getElementById('select-map-body').onchange = (e) => {
+      window.selectedBody = e.target.value;
+      initialize();
+    };
+    document.getElementById('select-map-style').onchange = (e) => {
+      window.selectedStyle = e.target.value;
+      initialize();
+    };
+  </script>
+</html>
