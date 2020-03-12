@@ -8,8 +8,29 @@ import plotly
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import ctypes
+from sympy import factorint
 
 _hook = OrderedDict()
+
+
+def _split_int(i):
+    if i < 3:
+        return 1, 3
+
+    factors = sum([[
+        k,
+    ] * v for k, v in factorint(i).items()], [])
+    if len(factors) == 1:
+        return _split_int(i + 1)
+
+    a = b = 1
+    while len(factors) > 0:
+        if min(a, b) == a:
+            a *= factors.pop()
+        else:
+            b *= factors.pop()
+        factors.reverse()
+    return a, b
 
 
 class _AppRunner(threading.Thread):
@@ -43,18 +64,19 @@ class _AppRunner(threading.Thread):
         # Multiple components can update everytime interval gets fired.
         def update_graph_live():
             # Create the graph with subplots
-            fig = plotly.subplots.make_subplots(rows=2,
-                                                cols=1,
+            rows, cols = _split_int(len(self.hook))
+            fig = plotly.subplots.make_subplots(rows=row,
+                                                cols=col,
                                                 vertical_spacing=0.2)
             fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 30, 't': 10}
             fig['layout']['legend'] = {'x': 0, 'y': 1, 'xanchor': 'left'}
 
-            def subplot_generator():
-                yield 1, 2
+            def subplot_generator(i):
+                yield 1 + i // cols, 1 + i % cols
 
-            for (_, dashboard) in hook.items():
+            for (i, (_, dashboard)) in enumerate(self.hook.items()):
                 x, y = dashboard.step()
-                row, col = subplot_generator()
+                row, col = subplot_generator(i)
                 fig.append_trace(
                     {
                         'x': x,
