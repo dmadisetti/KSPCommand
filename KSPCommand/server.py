@@ -46,7 +46,7 @@ class _AppRunner(threading.Thread):
         app = dash.Dash(
             __name__,
             external_stylesheets=[
-                'https://raw.githubusercontent.com/dmadisetti/KSPCommand/master/assets/styles.css '
+                'https://raw.githack.com/dmadisetti/KSPCommand/master/assets/styles.css'
             ])
         app.config['suppress_callback_exceptions'] = True
 
@@ -69,14 +69,14 @@ class _AppRunner(threading.Thread):
         def update_graph_live():
             # Create the graph with subplots
             rows, cols = _split_int(len(self.hook))
-            fig = plotly.subplots.make_subplots(rows=row,
-                                                cols=col,
+            fig = plotly.subplots.make_subplots(rows=rows,
+                                                cols=cols,
                                                 vertical_spacing=0.2)
             fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 30, 't': 10}
             fig['layout']['legend'] = {'x': 0, 'y': 1, 'xanchor': 'left'}
 
             def subplot_generator(i):
-                yield 1 + i // cols, 1 + i % cols
+                return 1 + i // cols, 1 + i % cols
 
             for (i, (_, dashboard)) in enumerate(self.hook.items()):
                 x, y = dashboard.step()
@@ -119,9 +119,11 @@ class _AppRunner(threading.Thread):
 
         app.callback(Output('live-update-graph', 'figure'),
                      inputs=[Input('interval-component', 'interval')],
-                     state=[State('tab', 'value')])(update_graph_live)
-
-        app.run_server(debug=False, dev_tools_props_check=True, **self.kwargs)
+                     state=[State('tabs', 'value')])(update_graph_live)
+        app.run_server(debug=True,
+                       dev_tools_props_check=True,
+                       use_reloader=False,
+                       **self.kwargs)
 
     def stop(self):
         thread_id = self.ident
@@ -147,8 +149,8 @@ class _Dashboard(object):
             raise KSPCommandException("Wrapped function must provide x and y")
         return t0
 
-    def _step(self):
-        self.steps.append(_extract_results())
+    def step(self):
+        self.steps.append(self._extract_results())
         return zip(*self.steps)
 
 
