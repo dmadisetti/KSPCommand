@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import ctypes
 from sympy import factorint
+import threading
 
 _hook = OrderedDict()
 

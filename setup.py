@@ -6,6 +6,7 @@ REQS = [
     "yapf==0.24.0",
     "krpc==0.4.8",
     "dash.ly",
+    "sympy",
     "dash",
     "dash-html-components",
     "dash-core-components",
