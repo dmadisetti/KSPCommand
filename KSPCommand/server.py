@@ -5,11 +5,13 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import ctypes
 from sympy import factorint
 import threading
+
+from .exception import KSPCommandException
 
 _hook = OrderedDict()
 
@@ -46,6 +48,7 @@ class _AppRunner(threading.Thread):
             external_stylesheets=[
                 'https://raw.githubusercontent.com/dmadisetti/KSPCommand/master/assets/styles.css '
             ])
+        app.config['suppress_callback_exceptions'] = True
 
         app.layout = html.Div([
             dcc.Tabs(id="tabs",
@@ -98,7 +101,8 @@ class _AppRunner(threading.Thread):
 
             return fig
 
-        @app.callback(Output('container', 'children'), [Input('tab', 'value')])
+        @app.callback(Output('container', 'children'),
+                      [Input('tabs', 'value')])
         def display_content(selected_tab):
             if selected_tab == "world" or selected_tab == "map":
                 return html.Div([
@@ -114,13 +118,13 @@ class _AppRunner(threading.Thread):
             ])
 
         app.callback(Output('live-update-graph', 'figure'),
-                     events=[Event('interval-component', 'interval')],
+                     inputs=[Input('interval-component', 'interval')],
                      state=[State('tab', 'value')])(update_graph_live)
 
-        app.run_server(debug=True, dev_tools_hot_reload=False, **self.kwargs)
+        app.run_server(debug=False, dev_tools_props_check=True, **self.kwargs)
 
     def stop(self):
-        thread_id = self.get_id()
+        thread_id = self.ident
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
             thread_id, ctypes.py_object(SystemExit))
         if res > 1:
@@ -129,7 +133,7 @@ class _AppRunner(threading.Thread):
 
 
 class _Dashboard(object):
-    __slots__ = ["name", "text", "fn"]
+    __slots__ = ["name", "text", "fn", "steps"]
 
     def __init__(self, fn, name, text):
         self.name = name
@@ -152,19 +156,19 @@ def AppThread(name, **kwargs):
     return _AppRunner(name, _hook, **kwargs)
 
 
-def graph(name="No Name", description=""):
-    if name in _hook:
-        raise KSPCommandException("Dash name has already been registered.")
-
-    def wrapper(fn):
-        d = Dashboard(fn, name, description)
-        _hook[name] = d
-        return fn
-
-    return wrapper
-
-
 def remove(name):
     if name not in _hook:
         raise KSPCommandException("Dash not registered.")
     del _hook[name]
+
+
+def graph(name="No Name", description=""):
+    if name in _hook:
+        remove(name)
+
+    def wrapper(fn):
+        d = _Dashboard(fn, name, description)
+        _hook[name] = d
+        return fn
+
+    return wrapper
