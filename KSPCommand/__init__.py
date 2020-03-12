@@ -1,4 +1,4 @@
 from .authentication import authenticate
-from .server import graph, remove, AppThread
+from .server import live_graph, graph, remove, AppThread
 
-__all__ = ["graph", "remove", "AppThread", "authenticate"]
+__all__ = ["live_graph", "graph", "remove", "AppThread", "authenticate"]
