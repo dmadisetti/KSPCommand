@@ -8,7 +8,7 @@ unzip -qq -n ngrok-stable-linux-amd64.zip;
 apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null;
 mkdir -p /var/run/sshd;
 echo "PermitRootLogin yes" >> /etc/ssh/sshd_config;
-echo “PasswordAuthentication {USE_PASSWORD}” >> /etc/ssh/sshd_config
+echo "PasswordAuthentication {USE_PASSWORD}" >> /etc/ssh/sshd_config
 echo "LD_LIBRARY_PATH=/usr/lib64-nvidia" >> /root/.bashrc;
 echo "export LD_LIBRARY_PATH" >> /root/.bashrc;
 echo "
@@ -25,7 +25,8 @@ tunnels:
 PASSWORD=`pwgen -1 16`;
 if [ "{USE_PASSWORD}" == "yes" ]; then
   echo root:$PASSWORD | chpasswd
-  echo "Use password $PASSWORD";
+  echo "Use password $PASSWORD" > .passwd;
 else
   curl "{KEY_URL}" > ~/.ssh/authorized_keys;
+  echo "Use a ssh key validated on github." > .passwd;
 fi

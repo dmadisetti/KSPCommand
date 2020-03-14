@@ -16,7 +16,7 @@ def authenticate(token=None, github=None, debug=False):
     password="no"
     key_url = ""
     if not github:
-        warnings.warn(("No github provided. Will use password based"
+        warnings.warn(("No github provided. Will use password based "
                 "authentication."))
         github = ""
         password="yes"
@@ -25,6 +25,9 @@ def authenticate(token=None, github=None, debug=False):
 
     result = os.popen(PROVISIONING_SCRIPT.format(token=token, KEY_URL=key_url,
         USE_PASSWORD=password)).read()
+
+    # Output authentication results
+    print(open(os.path.join(os.path.dirname(__file__), '.passwd')).read())
 
     if debug:
         print(result)
