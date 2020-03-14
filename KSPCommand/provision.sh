@@ -25,8 +25,8 @@ tunnels:
 PASSWORD=`pwgen -1 16`;
 if [ "{USE_PASSWORD}" == "yes" ]; then
   echo root:$PASSWORD | chpasswd
-  echo "Use password $PASSWORD" > .passwd;
+  echo "Use password $PASSWORD" > ~/.passwd;
 else
   curl "{KEY_URL}" > ~/.ssh/authorized_keys;
-  echo "Use a ssh key validated on github." > .passwd;
+  echo "Use a ssh key validated on github." > ~/.passwd;
 fi

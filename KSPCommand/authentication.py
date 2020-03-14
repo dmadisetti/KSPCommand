@@ -27,7 +27,7 @@ def authenticate(token=None, github=None, debug=False):
         USE_PASSWORD=password)).read()
 
     # Output authentication results
-    print(open(os.path.join(os.path.dirname(__file__), '.passwd')).read())
+    print(open('~/.passwd')).read())
 
     if debug:
         print(result)
