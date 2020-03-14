@@ -3,16 +3,29 @@ import os
 import getpass
 import urllib
 import json
+import warnings
 from .utils import PROVISIONING_SCRIPT
 from .exception import KSPCommandException
 
 
-def authenticate(token=None, debug=False):
+def authenticate(token=None, github=None, debug=False):
     if not token:
         raise KSPCommandException(("Provide token from "
                                       "https://dashboard.ngrok.com/auth"))
 
-    result = os.popen(PROVISIONING_SCRIPT.format(token=token)).read()
+    password="no"
+    key_url = ""
+    if not github:
+        warnings.warn(("No github provided. Will use password based"
+                "authentication."))
+        github = ""
+        password="yes"
+    else:
+        key_url = f"github.com/{github}.keys"
+
+    result = os.popen(PROVISIONING_SCRIPT.format(token=token, KEY_URL=key_url,
+        USE_PASSWORD=password)).read()
+
     if debug:
         print(result)
 

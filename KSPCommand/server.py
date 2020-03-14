@@ -13,28 +13,9 @@ import threading
 import sys
 
 from .exception import KSPCommandException
+from .utils import ASSET_URL, split_int
 
 _hook = OrderedDict()
-
-
-def _split_int(i):
-    if i < 4:
-        return 1, i
-
-    factors = sum([[
-        k,
-    ] * v for k, v in factorint(i).items()], [])
-    if len(factors) == 1:
-        return _split_int(i + 1)
-
-    a = b = 1
-    while len(factors) > 0:
-        if min(a, b) == a:
-            a *= factors.pop()
-        else:
-            b *= factors.pop()
-        factors.reverse()
-    return a, b
 
 
 class _AppRunner(threading.Thread):
@@ -45,10 +26,7 @@ class _AppRunner(threading.Thread):
 
     def run(self):
         app = dash.Dash(
-            __name__,
-            external_stylesheets=[
-                'https://raw.githack.com/dmadisetti/KSPCommand/master/assets/styles.css'
-            ])
+            __name__, external_stylesheets=[f"{ASSET_URL}/assets/styles.css"])
         app.config['suppress_callback_exceptions'] = True
 
         app.layout = html.Div([
@@ -62,14 +40,14 @@ class _AppRunner(threading.Thread):
             html.Div(id="container"),
             dcc.Interval(
                 id='interval-component',
-                interval=5 * 1000,  # in milliseconds
+                interval=5 * 1000,  # every half second
                 n_intervals=0)
         ])
 
         # Multiple components can update everytime interval gets fired.
         def update_graph_live():
             # Create the graph with subplots
-            rows, cols = _split_int(len(self.hook))
+            rows, cols = split_int(len(self.hook))
             fig = plotly.subplots.make_subplots(rows=rows,
                                                 cols=cols,
                                                 subplot_titles=tuple(
@@ -115,10 +93,7 @@ class _AppRunner(threading.Thread):
             if selected_tab == "world" or selected_tab == "map":
                 return html.Div([
                     html.H1("KSPCommand World View"),
-                    html.Iframe(
-                        src=
-                        "https://raw.githack.com/dmadisetti/KSPCommand/master/assets/index.html"
-                    )
+                    html.Iframe(src=f"{ASSET_URL}/assets/index.html")
                 ])
             return html.Div([
                 html.H1("KSPCommand Graphs"),
