@@ -11,23 +11,25 @@ from .exception import KSPCommandException
 def authenticate(token=None, github=None, debug=False):
     if not token:
         raise KSPCommandException(("Provide token from "
-                                      "https://dashboard.ngrok.com/auth"))
+                                   "https://dashboard.ngrok.com/auth"))
 
-    password="no"
+    password = "no"
     key_url = ""
     if not github:
         warnings.warn(("No github provided. Will use password based "
-                "authentication."))
+                       "authentication."))
         github = ""
-        password="yes"
+        password = "yes"
     else:
         key_url = f"github.com/{github}.keys"
 
-    result = os.popen(PROVISIONING_SCRIPT.format(token=token, KEY_URL=key_url,
-        USE_PASSWORD=password)).read()
+    result = os.popen(
+        PROVISIONING_SCRIPT.format(token=token,
+                                   KEY_URL=key_url,
+                                   USE_PASSWORD=password)).read()
 
     # Output authentication results
-    print(open('~/.passwd')).read())
+    print(open('/content/.passwd').read())
 
     if debug:
         print(result)
@@ -39,15 +41,19 @@ def authenticate(token=None, github=None, debug=False):
     get_ipython().system_raw('sleep 1')
 
     # Get ngrok url
-    with urllib.request.urlopen('http://localhost:4040/api/tunnels/second') as response:
-      data = json.loads(response.read().decode())
-      endpoint = data['public_url']
-      print(f'endpoint: {endpoint}')
+    with urllib.request.urlopen(
+            'http://localhost:4040/api/tunnels/second') as response:
+        data = json.loads(response.read().decode())
+        endpoint = data['public_url']
+        print(f'endpoint: {endpoint}')
 
     #Get public address and print connect command
-    with urllib.request.urlopen('http://localhost:4040/api/tunnels/first') as response:
-      data = json.loads(response.read().decode())
-      [host, port] = data['public_url'][6:].split(':')
-      print(f'SSH command: ssh -R 50000:localhost:50000 -R 50001:localhost:50001 -p{port} root@{host}')
+    with urllib.request.urlopen(
+            'http://localhost:4040/api/tunnels/first') as response:
+        data = json.loads(response.read().decode())
+        [host, port] = data['public_url'][6:].split(':')
+        print(
+            f'SSH command: ssh -R 50000:localhost:50000 -R 50001:localhost:50001 -p{port} root@{host}'
+        )
 
     return endpoint
