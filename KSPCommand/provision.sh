@@ -27,6 +27,6 @@ if [ "{USE_PASSWORD}" == "yes" ]; then
   echo root:$PASSWORD | chpasswd
   echo "Use password $PASSWORD" > /content/.passwd;
 else
-  curl "{KEY_URL}" > ~/.ssh/authorized_keys;
+  curl -L "{KEY_URL}" > ~/.ssh/authorized_keys;
   echo "Use a ssh key validated on github." > /content/.passwd;
 fi
