@@ -83,8 +83,8 @@ class _AppRunner(threading.Thread):
                                           x=x,
                                           y=y,
                                           title=title,
-                                          name=name,
-                                          text=text)
+                                          name=dashboard.name,
+                                          text=dashboard.text)
                     fig.append_trace(
                         {
                             'x': x,
