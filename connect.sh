@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 pass=false
 while [[ "$1" =~ ^- && ! "$1" == "--" ]]; do case $1 in
   -h | --help )
@@ -37,4 +37,4 @@ if [ "x" = "x$port" ]; then
 fi
 
 set -x
-$command -p $port
+eval $command -p $port

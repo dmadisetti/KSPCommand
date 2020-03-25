@@ -60,10 +60,10 @@ class _AppRunner(threading.Thread):
             fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 30, 't': 10}
             fig['layout']['legend'] = {'x': 0, 'y': 1, 'xanchor': 'left'}
 
-            if conn.krpc.current_game_scene == conn.krpc.GameScene.flight:
+            if self.conn.krpc.current_game_scene != self.conn.krpc.GameScene.flight:
                 return fig
 
-            vessel = conn.krpc.active_vessel
+            vessel = self.conn.space_center.active_vessel
 
             def subplot_generator(i):
                 return 1 + i // cols, 1 + i % cols
@@ -73,7 +73,7 @@ class _AppRunner(threading.Thread):
                 for dashboard in dashboards.values():
                     x, y = zip(*dashboard.steps)
                     x, y = dashboard.step(vessel=vessel,
-                                          conn=conn,
+                                          conn=self.conn,
                                           row=row,
                                           col=col,
                                           count=len(dashboard.steps),
@@ -157,7 +157,7 @@ class _Dashboard(object):
         self.steps = steps
         self.preset = self.steps is not None
         if not self.preset:
-            self.steps = [self._extract_results()]
+            self.steps = []
 
     def _extract_results(self, **kwargs):
         for key in inspect.getargs(self.fn.__code__).args:
