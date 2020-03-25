@@ -71,12 +71,15 @@ class _AppRunner(threading.Thread):
             for (i, (title, dashboards)) in enumerate(self.hook.items()):
                 row, col = subplot_generator(i)
                 for dashboard in dashboards.values():
-                    x, y = zip(*dashboard.step())
+                    total_steps = len(dashboard.steps)
+                    x, y = (0, 0)
+                    if total_steps > 0:
+                        x, y = zip(*dashboard.steps)
                     x, y = dashboard.step(vessel=vessel,
                                           conn=self.conn,
                                           row=row,
                                           col=col,
-                                          count=len(dashboard.steps),
+                                          count=total_steps,
                                           x=x,
                                           y=y,
                                           title=title,
