@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 apt update;
 apt upgrade;
 apt install -y gpgkey2ssh open-ssh;
@@ -23,7 +23,7 @@ tunnels:
 " > ngrok.yml;
 
 PASSWORD=`pwgen -1 16`;
-if [ "{USE_PASSWORD}" == "yes" ]; then
+if [ "{USE_PASSWORD}" = "yes" ]; then
   echo root:$PASSWORD | chpasswd
   echo "Use password $PASSWORD" > /content/.passwd;
 else

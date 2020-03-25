@@ -11,6 +11,7 @@ import ctypes
 from sympy import factorint
 import threading
 import sys
+import inspect
 
 from .exception import KSPCommandException
 from .utils import ASSET_URL, split_int
@@ -19,8 +20,11 @@ _hook = OrderedDict()
 
 
 class _AppRunner(threading.Thread):
-    def __init__(self, name, hook, **kwargs):
+    __slots__ = ["conn", "hook", "kwargs"]
+
+    def __init__(self, name, conn, hook, **kwargs):
         threading.Thread.__init__(self, name=name, daemon=True)
+        self.conn = conn
         self.hook = hook
         self.kwargs = kwargs
 
@@ -56,13 +60,28 @@ class _AppRunner(threading.Thread):
             fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 30, 't': 10}
             fig['layout']['legend'] = {'x': 0, 'y': 1, 'xanchor': 'left'}
 
+            if conn.krpc.current_game_scene == conn.krpc.GameScene.flight:
+                return fig
+
+            vessel = conn.krpc.active_vessel
+
             def subplot_generator(i):
                 return 1 + i // cols, 1 + i % cols
 
             for (i, (title, dashboards)) in enumerate(self.hook.items()):
                 row, col = subplot_generator(i)
                 for dashboard in dashboards.values():
-                    x, y = dashboard.step()
+                    x, y = zip(*dashboard.steps)
+                    x, y = dashboard.step(vessel=vessel,
+                                          conn=conn,
+                                          row=row,
+                                          col=col,
+                                          count=len(dashboard.steps),
+                                          x=x,
+                                          y=y,
+                                          title=title,
+                                          name=name,
+                                          text=text)
                     fig.append_trace(
                         {
                             'x': x,
@@ -106,7 +125,6 @@ class _AppRunner(threading.Thread):
                       [Input('interval-component', 'n_intervals')])
         def heartbeat(n):
             result = update_graph_live()
-            print(n, result, file=sys.stderr)
             return result
 
         app.run_server(debug=True,
@@ -141,20 +159,26 @@ class _Dashboard(object):
         if not self.preset:
             self.steps = [self._extract_results()]
 
-    def _extract_results(self):
-        t0 = self.fn()
+    def _extract_results(self, **kwargs):
+        for key in inspect.getargs(self.fn.__code__).args:
+            if key not in kwargs:
+                raise KSPCommandException("Unrecognized parameter %s" % key)
+        t0 = self.fn(**{
+            key: kwargs[key]
+            for key in inspect.getargs(self.fn.__code__).args
+        })
         if len(t0) != 2:
             raise KSPCommandException("Wrapped function must provide x and y")
         return t0
 
-    def step(self):
+    def step(self, **kwargs):
         if not self.preset:
-            self.steps.append(self._extract_results())
+            self.steps.append(self._extract_results(**kwargs))
         return zip(*self.steps)
 
 
-def AppThread(name, **kwargs):
-    return _AppRunner(name, _hook, **kwargs)
+def AppThread(name, conn, **kwargs):
+    return _AppRunner(name, conn, _hook, **kwargs)
 
 
 def remove(name):
